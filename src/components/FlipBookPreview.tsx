@@ -1,4 +1,5 @@
 import { useRef, useState, useCallback, forwardRef } from "react";
+import { useNavigate } from "react-router-dom";
 import HTMLFlipBook from "react-pageflip";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ const FlipBookPreview = () => {
   const bookRef = useRef<any>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const totalPages = 6;
+  const navigate = useNavigate();
 
   const nextPage = useCallback(() => {
     bookRef.current?.pageFlip()?.flipNext();
@@ -318,7 +320,7 @@ const FlipBookPreview = () => {
                         <p className="text-muted-foreground text-[10px] mb-3">
                           To'liq kitobni o'qish uchun sotib oling
                         </p>
-                        <Button variant="hero" size="sm" className="text-xs h-8">
+                        <Button variant="hero" size="sm" className="text-xs h-8" onClick={() => navigate("/purchase")}>
                           Sotib olish
                         </Button>
                       </div>
