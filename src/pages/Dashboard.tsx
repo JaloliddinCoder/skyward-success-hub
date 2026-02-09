@@ -9,6 +9,7 @@ import { BookOpen, User, FileText, LogOut, AlertTriangle, Shield } from "lucide-
 import FullBookReader from "@/components/FullBookReader";
 import CVSubmission from "@/components/CVSubmission";
 import AccessCountdown from "@/components/AccessCountdown";
+import DashboardBookList from "@/components/DashboardBookList";
 import { useToast } from "@/hooks/use-toast";
 
 interface LeadData {
@@ -207,6 +208,15 @@ const Dashboard = () => {
                 hasCvSubmitted={lead.has_cv_submitted}
                 onSubmitted={handleCVSubmitted}
               />
+            </motion.div>
+
+            {/* Additional Files */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+            >
+              <DashboardBookList />
             </motion.div>
 
             {/* User Info */}
