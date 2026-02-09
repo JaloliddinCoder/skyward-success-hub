@@ -86,8 +86,18 @@ const Auth = () => {
           return;
         }
 
-        setError(null);
-        alert("Ro'yxatdan o'tdingiz! Email orqali tasdiqlang.");
+        // Auto-confirmed, log in automatically
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (loginError) {
+          setError("Ro'yxatdan o'tdingiz! Iltimos, kiring.");
+          setIsLogin(true);
+          setLoading(false);
+          return;
+        }
+        navigate("/dashboard");
       }
     } catch (err) {
       setError("Xatolik yuz berdi. Qayta urinib ko'ring.");
