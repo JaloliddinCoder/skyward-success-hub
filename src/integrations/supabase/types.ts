@@ -24,6 +24,7 @@ export type Database = {
           id: string
           status: Database["public"]["Enums"]["user_status"]
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           access_until?: string | null
@@ -34,6 +35,7 @@ export type Database = {
           id?: string
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           access_until?: string | null
@@ -44,6 +46,7 @@ export type Database = {
           id?: string
           status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

@@ -48,9 +48,11 @@ const Purchase = () => {
 
     // Save as lead
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const { error: insertError } = await supabase.from("leads").insert({
         full_name: result.data.fullName,
         age: result.data.age,
+        user_id: session?.user.id,
       });
 
       if (insertError) throw insertError;
