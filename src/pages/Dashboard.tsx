@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, User, FileText, LogOut, AlertTriangle } from "lucide-react";
+import { BookOpen, User, FileText, LogOut, AlertTriangle, Shield } from "lucide-react";
 import FullBookReader from "@/components/FullBookReader";
 import CVSubmission from "@/components/CVSubmission";
 import AccessCountdown from "@/components/AccessCountdown";
@@ -24,6 +24,7 @@ const Dashboard = () => {
   const [lead, setLead] = useState<LeadData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("book");
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -39,6 +40,16 @@ const Dashboard = () => {
         navigate("/auth");
         return;
       }
+
+      // Check admin role
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      
+      setIsAdmin(!!roleData);
 
       // Get profile first
       const { data: profile } = await supabase
@@ -155,10 +166,18 @@ const Dashboard = () => {
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Chiqish
-          </Button>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
+                <Shield className="w-4 h-4 mr-2" />
+                Admin Panel
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Chiqish
+            </Button>
+          </div>
         </div>
       </header>
 
