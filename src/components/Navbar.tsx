@@ -1,16 +1,30 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plane, Menu, X } from "lucide-react";
+import { Plane, Menu, X, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handler);
     return () => window.removeEventListener("scroll", handler);
+  }, []);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -50,9 +64,21 @@ const Navbar = () => {
               {item}
             </a>
           ))}
-          <Button variant="hero" size="sm">
+          <Button variant="hero" size="sm" onClick={() => navigate("/purchase")}>
             Sotib olish
           </Button>
+          {user ? (
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="transition-colors"
+            >
+              <UserCircle className={`w-7 h-7 ${scrolled ? "text-foreground" : "text-primary-foreground"}`} />
+            </button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
+              Kirish
+            </Button>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -85,9 +111,19 @@ const Navbar = () => {
                 {item}
               </a>
             ))}
-            <Button variant="hero" size="sm" className="w-full">
+            <Button variant="hero" size="sm" className="w-full" onClick={() => navigate("/purchase")}>
               Sotib olish
             </Button>
+            {user ? (
+              <Button variant="outline" size="sm" className="w-full" onClick={() => navigate("/dashboard")}>
+                <UserCircle className="w-4 h-4 mr-2" />
+                Dashboard
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" className="w-full" onClick={() => navigate("/auth")}>
+                Kirish
+              </Button>
+            )}
           </div>
         </motion.div>
       )}
