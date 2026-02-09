@@ -69,10 +69,10 @@ const Dashboard = () => {
       }
 
       // Check if user has a lead with approved status
-      // For now, we'll check leads by matching name from profile
       const { data: leads, error } = await supabase
         .from("leads")
         .select("*")
+        .eq("user_id", session.user.id)
         .eq("status", "approved")
         .limit(1);
 
