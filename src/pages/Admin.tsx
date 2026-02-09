@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plane, LogOut, Users, CheckCircle, XCircle, Clock, RefreshCw } from "lucide-react";
+import { Plane, LogOut, Users, CheckCircle, XCircle, Clock, RefreshCw, FileText, Download } from "lucide-react";
 import { User, Session } from "@supabase/supabase-js";
 
 interface Lead {
@@ -15,6 +15,7 @@ interface Lead {
   status: "pending" | "approved" | "blocked";
   access_until: string | null;
   has_cv_submitted: boolean;
+  cv_file_path: string | null;
   created_at: string;
 }
 
@@ -93,6 +94,21 @@ const Admin = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
+  };
+
+  const handleDownloadCV = async (cvFilePath: string, fullName: string) => {
+    const { data, error } = await supabase.storage
+      .from("cvs")
+      .download(cvFilePath);
+
+    if (error || !data) return;
+
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `CV_${fullName.replace(/\s+/g, "_")}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const filteredLeads = filter === "all" ? leads : leads.filter((lead) => lead.status === filter);
@@ -184,6 +200,7 @@ const Admin = () => {
                 <TableHead>Ism</TableHead>
                 <TableHead>Yosh</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>CV</TableHead>
                 <TableHead>Kirish muddati</TableHead>
                 <TableHead>Ro'yxatdan o'tgan</TableHead>
                 <TableHead className="text-right">Amallar</TableHead>
@@ -192,7 +209,7 @@ const Admin = () => {
             <TableBody>
               {filteredLeads.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     Hech qanday foydalanuvchi topilmadi
                   </TableCell>
                 </TableRow>
@@ -217,6 +234,26 @@ const Admin = () => {
                             ? "Tasdiqlangan"
                             : "Bloklangan"}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {lead.has_cv_submitted && lead.cv_file_path ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadCV(lead.cv_file_path!, lead.full_name)}
+                          className="gap-1"
+                        >
+                          <Download className="w-3 h-3" />
+                          Yuklab olish
+                        </Button>
+                      ) : lead.has_cv_submitted ? (
+                        <Badge variant="secondary">
+                          <FileText className="w-3 h-3 mr-1" />
+                          Yuborilgan
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {lead.access_until ? new Date(lead.access_until).toLocaleDateString("uz-UZ") : "—"}
