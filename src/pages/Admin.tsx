@@ -4,23 +4,8 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Plane,
-  LogOut,
-  Users,
-  CheckCircle,
-  XCircle,
-  Clock,
-  RefreshCw,
-} from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Plane, LogOut, Users, CheckCircle, XCircle, Clock, RefreshCw } from "lucide-react";
 import { User, Session } from "@supabase/supabase-js";
 
 interface Lead {
@@ -43,16 +28,16 @@ const Admin = () => {
   const [updating, setUpdating] = useState<string | null>(null);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (!session) {
-          navigate("/auth");
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (!session) {
+        navigate("/auth");
       }
-    );
+    });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -73,10 +58,7 @@ const Admin = () => {
   }, [session]);
 
   const fetchLeads = async () => {
-    const { data, error } = await supabase
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
 
     if (!error && data) {
       setLeads(data);
@@ -85,27 +67,26 @@ const Admin = () => {
 
   const updateLeadStatus = async (leadId: string, newStatus: "approved" | "blocked") => {
     setUpdating(leadId);
-    
-    const accessUntil = newStatus === "approved" 
-      ? new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000).toISOString() // +6 months
-      : null;
+
+    const accessUntil =
+      newStatus === "approved"
+        ? new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000).toISOString() // +6 months
+        : null;
 
     const { error } = await supabase
       .from("leads")
-      .update({ 
+      .update({
         status: newStatus,
-        access_until: accessUntil
+        access_until: accessUntil,
       })
       .eq("id", leadId);
 
     if (!error) {
-      setLeads(leads.map(lead => 
-        lead.id === leadId 
-          ? { ...lead, status: newStatus, access_until: accessUntil }
-          : lead
-      ));
+      setLeads(
+        leads.map((lead) => (lead.id === leadId ? { ...lead, status: newStatus, access_until: accessUntil } : lead)),
+      );
     }
-    
+
     setUpdating(null);
   };
 
@@ -114,15 +95,13 @@ const Admin = () => {
     navigate("/auth");
   };
 
-  const filteredLeads = filter === "all" 
-    ? leads 
-    : leads.filter(lead => lead.status === filter);
+  const filteredLeads = filter === "all" ? leads : leads.filter((lead) => lead.status === filter);
 
   const stats = {
     total: leads.length,
-    pending: leads.filter(l => l.status === "pending").length,
-    approved: leads.filter(l => l.status === "approved").length,
-    blocked: leads.filter(l => l.status === "blocked").length,
+    pending: leads.filter((l) => l.status === "pending").length,
+    approved: leads.filter((l) => l.status === "approved").length,
+    blocked: leads.filter((l) => l.status === "blocked").length,
   };
 
   if (loading) {
@@ -140,14 +119,10 @@ const Admin = () => {
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Plane className="w-5 h-5 text-gold" />
-            <span className="font-display text-lg font-bold text-foreground">
-              Admin Panel
-            </span>
+            <span className="font-display text-lg font-bold text-foreground"></span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              {user?.email}
-            </span>
+            <span className="text-sm text-muted-foreground">{user?.email}</span>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="w-4 h-4 mr-2" />
               Chiqish
@@ -174,9 +149,7 @@ const Admin = () => {
               <div className="flex items-center gap-3">
                 <stat.icon className={`w-5 h-5 ${stat.color}`} />
                 <div>
-                  <div className="text-2xl font-display font-bold text-foreground">
-                    {stat.value}
-                  </div>
+                  <div className="text-2xl font-display font-bold text-foreground">{stat.value}</div>
                   <div className="text-xs text-muted-foreground">{stat.label}</div>
                 </div>
               </div>
@@ -187,21 +160,17 @@ const Admin = () => {
         {/* Filters */}
         <div className="flex items-center gap-2 mb-6">
           {(["all", "pending", "approved", "blocked"] as const).map((f) => (
-            <Button
-              key={f}
-              variant={filter === f ? "premium" : "outline"}
-              size="sm"
-              onClick={() => setFilter(f)}
-            >
-              {f === "all" ? "Hammasi" : f === "pending" ? "Kutilmoqda" : f === "approved" ? "Tasdiqlangan" : "Bloklangan"}
+            <Button key={f} variant={filter === f ? "premium" : "outline"} size="sm" onClick={() => setFilter(f)}>
+              {f === "all"
+                ? "Hammasi"
+                : f === "pending"
+                  ? "Kutilmoqda"
+                  : f === "approved"
+                    ? "Tasdiqlangan"
+                    : "Bloklangan"}
             </Button>
           ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchLeads}
-            className="ml-auto"
-          >
+          <Button variant="outline" size="sm" onClick={fetchLeads} className="ml-auto">
             <RefreshCw className="w-4 h-4 mr-2" />
             Yangilash
           </Button>
@@ -238,21 +207,21 @@ const Admin = () => {
                           lead.status === "approved"
                             ? "default"
                             : lead.status === "blocked"
-                            ? "destructive"
-                            : "secondary"
+                              ? "destructive"
+                              : "secondary"
                         }
                       >
-                        {lead.status === "pending" ? "Kutilmoqda" : lead.status === "approved" ? "Tasdiqlangan" : "Bloklangan"}
+                        {lead.status === "pending"
+                          ? "Kutilmoqda"
+                          : lead.status === "approved"
+                            ? "Tasdiqlangan"
+                            : "Bloklangan"}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {lead.access_until
-                        ? new Date(lead.access_until).toLocaleDateString("uz-UZ")
-                        : "—"}
+                      {lead.access_until ? new Date(lead.access_until).toLocaleDateString("uz-UZ") : "—"}
                     </TableCell>
-                    <TableCell>
-                      {new Date(lead.created_at).toLocaleDateString("uz-UZ")}
-                    </TableCell>
+                    <TableCell>{new Date(lead.created_at).toLocaleDateString("uz-UZ")}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         {lead.status !== "approved" && (
