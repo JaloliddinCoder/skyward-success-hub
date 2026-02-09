@@ -64,21 +64,32 @@ const CVSubmission = ({ leadId, hasCvSubmitted, onSubmitted }: CVSubmissionProps
     setUploadProgress(0);
 
     try {
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => Math.min(prev + 10, 90));
-      }, 200);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Foydalanuvchi tizimga kirmagan");
 
-      // Update lead record to mark CV as submitted
-      const { error } = await supabase
+      // Upload file to storage
+      const filePath = `${session.user.id}/${Date.now()}_${file.name}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from("cvs")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      setUploadProgress(70);
+
+      if (uploadError) throw uploadError;
+
+      // Update lead record with file path
+      const { error: updateError } = await supabase
         .from("leads")
-        .update({ has_cv_submitted: true })
+        .update({ has_cv_submitted: true, cv_file_path: filePath })
         .eq("id", leadId);
 
-      clearInterval(progressInterval);
       setUploadProgress(100);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       toast({
         title: "CV muvaffaqiyatli yuborildi!",
