@@ -3,6 +3,7 @@ import HeroSection from "@/components/HeroSection";
 import LeadCapture from "@/components/LeadCapture";
 import ExpertStory from "@/components/ExpertStory";
 import BookFeatures from "@/components/BookFeatures";
+import FlipBookPreview from "@/components/FlipBookPreview";
 import BonusSection from "@/components/BonusSection";
 import Footer from "@/components/Footer";
 
@@ -14,6 +15,7 @@ const Index = () => {
       <LeadCapture />
       <ExpertStory />
       <BookFeatures />
+      <FlipBookPreview />
       <BonusSection />
       <Footer />
     </main>
