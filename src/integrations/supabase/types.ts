@@ -19,6 +19,7 @@ export type Database = {
           access_until: string | null
           age: number
           created_at: string
+          cv_file_path: string | null
           full_name: string
           has_cv_submitted: boolean
           id: string
@@ -30,6 +31,7 @@ export type Database = {
           access_until?: string | null
           age: number
           created_at?: string
+          cv_file_path?: string | null
           full_name: string
           has_cv_submitted?: boolean
           id?: string
@@ -41,6 +43,7 @@ export type Database = {
           access_until?: string | null
           age?: number
           created_at?: string
+          cv_file_path?: string | null
           full_name?: string
           has_cv_submitted?: boolean
           id?: string
