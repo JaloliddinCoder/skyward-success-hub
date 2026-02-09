@@ -56,7 +56,7 @@ const Auth = () => {
           return;
         }
 
-        navigate("/admin");
+        navigate("/");
       } else {
         const result = signupSchema.safeParse({ email, password, fullName });
         if (!result.success) {
@@ -97,7 +97,7 @@ const Auth = () => {
           setLoading(false);
           return;
         }
-        navigate("/dashboard");
+        navigate("/");
       }
     } catch (err) {
       setError("Xatolik yuz berdi. Qayta urinib ko'ring.");
