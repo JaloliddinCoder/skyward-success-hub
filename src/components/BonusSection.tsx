@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Clock, Gift, FileCheck, Sparkles } from "lucide-react";
@@ -10,6 +11,7 @@ if (DEADLINE.getTime() < Date.now()) {
 }
 
 const BonusSection = () => {
+  const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
@@ -104,7 +106,7 @@ const BonusSection = () => {
             </div>
           </div>
 
-          <Button variant="hero" size="xl">
+          <Button variant="hero" size="xl" onClick={() => navigate("/purchase")}>
             Hozir sotib olish — Bonuslar bilan
           </Button>
         </motion.div>

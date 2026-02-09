@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plane, LogOut, Users, CheckCircle, XCircle, Clock, RefreshCw, FileText, Download } from "lucide-react";
+import { Plane, LogOut, Users, CheckCircle, XCircle, Clock, RefreshCw, FileText, Download, BookOpen } from "lucide-react";
+import AdminBookManager from "@/components/AdminBookManager";
 import { User, Session } from "@supabase/supabase-js";
 
 interface Lead {
@@ -190,6 +191,11 @@ const Admin = () => {
             <RefreshCw className="w-4 h-4 mr-2" />
             Yangilash
           </Button>
+        </div>
+
+        {/* Book Manager */}
+        <div className="mb-8">
+          <AdminBookManager />
         </div>
 
         {/* Table */}
