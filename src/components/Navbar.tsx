@@ -75,9 +75,14 @@ const Navbar = () => {
               <UserCircle className={`w-7 h-7 ${scrolled ? "text-foreground" : "text-primary-foreground"}`} />
             </button>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
-              Kirish
-            </Button>
+            <>
+              <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
+                Kirish
+              </Button>
+              <Button variant="hero" size="sm" onClick={() => { navigate("/auth"); }}>
+                Ro'yxatdan o'tish
+              </Button>
+            </>
           )}
         </div>
 
