@@ -11,46 +11,60 @@ interface TrailDot {
 
 interface SectionTarget {
   id: string;
-  x: number; // vw
-  y: number; // vh
+  tooltip: string;
   rotation: number;
 }
 
-// Each section has a target point where the plane should guide attention
 const SECTION_TARGETS: SectionTarget[] = [
-  { id: "hero", x: 30, y: 55, rotation: 130 },        // Points to CTA buttons
-  { id: "lead-capture", x: 65, y: 50, rotation: 45 },  // Points to form
-  { id: "expert-story", x: 35, y: 45, rotation: -20 }, // Points to expert info
-  { id: "book-features", x: 70, y: 50, rotation: 30 }, // Points to features list
-  { id: "flipbook-preview", x: 60, y: 40, rotation: 50 }, // Points to book preview
-  { id: "bonus-section", x: 40, y: 50, rotation: -30 },   // Points to bonuses
+  { id: "hero", tooltip: "Kitobni hoziroq sotib oling! ✈️", rotation: 130 },
+  { id: "lead-capture", tooltip: "Bu yerda ro'yxatdan o'ting! 📝", rotation: 45 },
+  { id: "expert-story", tooltip: "Mentoringiz bilan tanishing! 👨‍✈️", rotation: -20 },
+  { id: "book-features", tooltip: "Kitob ichida nimalar bor? 📖", rotation: 30 },
+  { id: "flipbook-preview", tooltip: "Bepul sahifalarni ko'ring! 👀", rotation: 50 },
+  { id: "bonus-section", tooltip: "Bonuslarni qo'lga kiriting! 🎁", rotation: -30 },
 ];
 
 const PlaneAnimation = () => {
-  const [visible, setVisible] = useState(false);
-  const [planePos, setPlanePos] = useState({ x: 50, y: 50 });
-  const [planeRotation, setPlaneRotation] = useState(90);
+  const [planePos, setPlanePos] = useState({ x: -100, y: -100 });
   const [trail, setTrail] = useState<TrailDot[]>([]);
   const [activeSection, setActiveSection] = useState(0);
+  const [showTooltip, setShowTooltip] = useState(false);
   const location = useLocation();
-  const hideTimeout = useRef<NodeJS.Timeout | null>(null);
   const trailId = useRef(0);
-  const currentX = useRef(50);
-  const currentY = useRef(50);
-  const currentRot = useRef(90);
-  const idleFrame = useRef<number>(0);
-  const lastScrollY = useRef(0);
+  const mouseX = useRef(-100);
+  const mouseY = useRef(-100);
+  const currentX = useRef(-100);
+  const currentY = useRef(-100);
+  const animFrame = useRef<number>(0);
+  const tooltipTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastTrailTime = useRef(0);
 
-  const showPlane = useCallback(() => {
-    setVisible(true);
-    if (hideTimeout.current) clearTimeout(hideTimeout.current);
-    hideTimeout.current = setTimeout(() => setVisible(false), 4000);
+  // Hide default cursor globally
+  useEffect(() => {
+    document.body.style.cursor = "none";
+    const style = document.createElement("style");
+    style.id = "plane-cursor-style";
+    style.textContent = "*, *::before, *::after { cursor: none !important; }";
+    document.head.appendChild(style);
+    return () => {
+      document.body.style.cursor = "";
+      style.remove();
+    };
   }, []);
 
-  // Detect which section is in view
+  // Track mouse
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      mouseX.current = e.clientX;
+      mouseY.current = e.clientY;
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => window.removeEventListener("mousemove", onMove);
+  }, []);
+
+  // Detect active section
   useEffect(() => {
     const sectionIds = SECTION_TARGETS.map((s) => s.id);
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -58,7 +72,10 @@ const PlaneAnimation = () => {
             const idx = sectionIds.indexOf(entry.target.id);
             if (idx !== -1) {
               setActiveSection(idx);
-              showPlane();
+              // Show tooltip briefly on section change
+              setShowTooltip(true);
+              if (tooltipTimer.current) clearTimeout(tooltipTimer.current);
+              tooltipTimer.current = setTimeout(() => setShowTooltip(false), 3000);
             }
           }
         });
@@ -66,7 +83,6 @@ const PlaneAnimation = () => {
       { threshold: 0.3 }
     );
 
-    // Observe after a short delay to let DOM render
     const timer = setTimeout(() => {
       sectionIds.forEach((id) => {
         const el = document.getElementById(id);
@@ -78,129 +94,130 @@ const PlaneAnimation = () => {
       clearTimeout(timer);
       observer.disconnect();
     };
-  }, [showPlane, location.pathname]);
+  }, [location.pathname]);
 
-  // Smooth animation loop
+  // Smooth follow animation
   useEffect(() => {
-    let time = 0;
-
     const animate = () => {
-      time += 0.01;
-      const target = SECTION_TARGETS[activeSection];
-      if (!target) {
-        idleFrame.current = requestAnimationFrame(animate);
-        return;
-      }
-
-      // Add gentle hovering motion around target
-      const hoverX = Math.sin(time * 1.2) * 3 + Math.sin(time * 2.1) * 1.5;
-      const hoverY = Math.cos(time * 0.9) * 2.5 + Math.sin(time * 1.7) * 1;
-
-      const goalX = target.x + hoverX;
-      const goalY = target.y + hoverY;
-      const goalRot = target.rotation + Math.sin(time * 1.5) * 8;
-
-      // Smooth lerp
-      const lerp = 0.03;
-      currentX.current += (goalX - currentX.current) * lerp;
-      currentY.current += (goalY - currentY.current) * lerp;
-      currentRot.current += (goalRot - currentRot.current) * lerp;
-
-      // Clamp
-      currentX.current = Math.min(85, Math.max(15, currentX.current));
-      currentY.current = Math.min(85, Math.max(15, currentY.current));
+      const lerp = 0.15;
+      currentX.current += (mouseX.current - currentX.current) * lerp;
+      currentY.current += (mouseY.current - currentY.current) * lerp;
 
       setPlanePos({ x: currentX.current, y: currentY.current });
-      setPlaneRotation(currentRot.current);
 
-      // Trail
-      if (visible) {
+      // Trail - throttled
+      const now = Date.now();
+      if (now - lastTrailTime.current > 40 && mouseX.current > 0) {
+        lastTrailTime.current = now;
         const dot: TrailDot = {
           id: ++trailId.current,
           x: currentX.current,
           y: currentY.current,
-          createdAt: Date.now(),
+          createdAt: now,
         };
-        setTrail((prev) => [...prev.slice(-50), dot]);
+        setTrail((prev) => [...prev.slice(-40), dot]);
       }
 
-      idleFrame.current = requestAnimationFrame(animate);
+      animFrame.current = requestAnimationFrame(animate);
     };
 
-    idleFrame.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(idleFrame.current);
-  }, [activeSection, visible]);
+    animFrame.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animFrame.current);
+  }, []);
 
-  // Show on scroll
-  useEffect(() => {
-    const onScroll = () => {
-      const delta = Math.abs(window.scrollY - lastScrollY.current);
-      if (delta > 30) {
-        showPlane();
-        lastScrollY.current = window.scrollY;
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [showPlane]);
-
-  // Route change trigger
-  useEffect(() => {
-    showPlane();
-  }, [location.pathname, showPlane]);
-
-  // Clean old trail dots
+  // Clean old trail
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      setTrail((prev) => prev.filter((d) => now - d.createdAt < 2500));
+      setTrail((prev) => prev.filter((d) => now - d.createdAt < 1500));
     }, 200);
     return () => clearInterval(interval);
   }, []);
 
-  if (!visible && trail.length === 0) return null;
+  // Show tooltip on scroll into new section
+  const handleScroll = useCallback(() => {
+    setShowTooltip(true);
+    if (tooltipTimer.current) clearTimeout(tooltipTimer.current);
+    tooltipTimer.current = setTimeout(() => setShowTooltip(false), 3000);
+  }, []);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const delta = Math.abs(window.scrollY - lastY);
+      if (delta > 100) {
+        handleScroll();
+        lastY = window.scrollY;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [handleScroll]);
+
+  const currentTooltip = SECTION_TARGETS[activeSection]?.tooltip || "";
+
+  // Calculate rotation based on movement direction
+  const dx = mouseX.current - currentX.current;
+  const dy = mouseY.current - currentY.current;
+  const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 0;
 
   return (
     <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden">
       {/* Trail */}
       {trail.map((dot) => {
-        const age = (Date.now() - dot.createdAt) / 2500;
+        const age = (Date.now() - dot.createdAt) / 1500;
         const opacity = Math.max(0, 1 - age);
         return (
           <div
             key={dot.id}
             className="absolute rounded-full"
             style={{
-              left: `${dot.x}vw`,
-              top: `${dot.y}vh`,
-              width: `${5 + (1 - opacity) * 4}px`,
-              height: `${5 + (1 - opacity) * 4}px`,
-              opacity: opacity * 0.6,
-              background: `radial-gradient(circle, hsl(40 65% 62% / ${opacity}), hsl(40 65% 52% / ${opacity * 0.3}))`,
-              boxShadow: `0 0 ${6 + (1 - opacity) * 5}px hsl(40 65% 52% / ${opacity * 0.4})`,
+              left: dot.x,
+              top: dot.y,
+              width: `${3 + (1 - opacity) * 3}px`,
+              height: `${3 + (1 - opacity) * 3}px`,
+              opacity: opacity * 0.5,
+              background: `radial-gradient(circle, hsl(var(--gold) / ${opacity}), hsl(var(--gold) / ${opacity * 0.2}))`,
+              boxShadow: `0 0 ${4 + (1 - opacity) * 4}px hsl(var(--gold) / ${opacity * 0.3})`,
               transform: "translate(-50%, -50%)",
             }}
           />
         );
       })}
 
-      {/* Plane */}
-      {visible && (
-        <div
-          className="absolute"
+      {/* Plane cursor */}
+      <div
+        className="absolute"
+        style={{
+          left: planePos.x,
+          top: planePos.y,
+          transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+        }}
+      >
+        <Plane
+          className="w-7 h-7 text-gold"
           style={{
-            left: `${planePos.x}vw`,
-            top: `${planePos.y}vh`,
-            transform: `translate(-50%, -50%) rotate(${planeRotation}deg)`,
-            transition: "transform 0.4s ease-out",
+            filter: "drop-shadow(0 0 8px hsl(var(--gold) / 0.6))",
+          }}
+        />
+      </div>
+
+      {/* Tooltip */}
+      {showTooltip && currentTooltip && (
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            left: planePos.x + 20,
+            top: planePos.y - 35,
+            transition: "opacity 0.3s ease",
           }}
         >
-          <Plane
-            className="w-10 h-10 text-gold"
-            style={{
-              filter: "drop-shadow(0 0 12px hsl(40 65% 52% / 0.7))",
-            }}
-          />
+          <div className="bg-foreground/90 text-primary-foreground text-xs font-body px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg backdrop-blur-sm">
+            {currentTooltip}
+            <div
+              className="absolute -bottom-1 left-2 w-2 h-2 bg-foreground/90 rotate-45"
+            />
+          </div>
         </div>
       )}
     </div>
