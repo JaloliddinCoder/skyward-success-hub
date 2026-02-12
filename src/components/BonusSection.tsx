@@ -37,7 +37,7 @@ const BonusSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-gradient-hero relative overflow-hidden">
+    <section id="bonus-section" className="py-24 bg-gradient-hero relative overflow-hidden">
       {/* Decorative */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-20 left-10 w-64 h-64 bg-gold rounded-full blur-[100px]" />
