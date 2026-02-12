@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { Plane } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TrailDot {
   id: number;
@@ -25,6 +26,7 @@ const SECTION_TARGETS: SectionTarget[] = [
 ];
 
 const PlaneAnimation = () => {
+  const isMobile = useIsMobile();
   const [planePos, setPlanePos] = useState({ x: -100, y: -100 });
   const [trail, setTrail] = useState<TrailDot[]>([]);
   const [activeSection, setActiveSection] = useState(0);
@@ -156,6 +158,8 @@ const PlaneAnimation = () => {
 
   const currentTooltip = SECTION_TARGETS[activeSection]?.tooltip || "";
 
+  if (isMobile) return null;
+
   // Calculate rotation based on movement direction
   const dx = mouseX.current - currentX.current;
   const dy = mouseY.current - currentY.current;
@@ -203,16 +207,19 @@ const PlaneAnimation = () => {
       </div>
 
       {/* Tooltip */}
-      {showTooltip && currentTooltip && (
+      {currentTooltip && (
         <div
           className="absolute pointer-events-none"
           style={{
-            left: planePos.x + 20,
-            top: planePos.y - 35,
-            transition: "opacity 0.3s ease",
+            left: planePos.x + 22,
+            top: planePos.y - 38,
+            opacity: showTooltip ? 1 : 0,
+            transform: showTooltip ? "scale(1) translateY(0)" : "scale(0.7) translateY(8px)",
+            transformOrigin: "bottom left",
+            transition: "opacity 0.4s cubic-bezier(0.16,1,0.3,1), transform 0.4s cubic-bezier(0.16,1,0.3,1)",
           }}
         >
-          <div className="bg-foreground/90 text-primary-foreground text-xs font-body px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg backdrop-blur-sm">
+          <div className="bg-foreground/90 text-primary-foreground text-xs font-body px-3 py-1.5 rounded-lg whitespace-nowrap shadow-lg backdrop-blur-sm border border-gold/20">
             {currentTooltip}
             <div
               className="absolute -bottom-1 left-2 w-2 h-2 bg-foreground/90 rotate-45"
