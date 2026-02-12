@@ -17,12 +17,12 @@ interface SectionTarget {
 }
 
 const SECTION_TARGETS: SectionTarget[] = [
-  { id: "hero", tooltip: "Kitobni hoziroq sotib oling! ✈️", rotation: 130 },
-  { id: "lead-capture", tooltip: "Bu yerda ro'yxatdan o'ting! 📝", rotation: 45 },
-  { id: "expert-story", tooltip: "Mentoringiz bilan tanishing! 👨‍✈️", rotation: -20 },
-  { id: "book-features", tooltip: "Kitob ichida nimalar bor? 📖", rotation: 30 },
-  { id: "flipbook-preview", tooltip: "Bepul sahifalarni ko'ring! 👀", rotation: 50 },
-  { id: "bonus-section", tooltip: "Bonuslarni qo'lga kiriting! 🎁", rotation: -30 },
+  { id: "hero", tooltip: "🔥 Orzuingizdagi kasbga birinchi qadam!", rotation: 130 },
+  { id: "lead-capture", tooltip: "📝 30 soniyada ro'yxatdan o'ting — bepul!", rotation: 45 },
+  { id: "expert-story", tooltip: "👨‍✈️ 3 yillik Emirates tajribasi siz uchun!", rotation: -20 },
+  { id: "book-features", tooltip: "📖 10 ta bob — har biri sizni yaqinlashtiradi!", rotation: 30 },
+  { id: "flipbook-preview", tooltip: "👀 Bepul sahifalarni hoziroq varaqlab ko'ring!", rotation: 50 },
+  { id: "bonus-section", tooltip: "🎁 Faqat bugun — maxsus bonuslar!", rotation: -30 },
 ];
 
 const PlaneAnimation = () => {
