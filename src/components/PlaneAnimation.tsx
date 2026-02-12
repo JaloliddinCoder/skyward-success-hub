@@ -56,7 +56,7 @@ const PlaneAnimation = () => {
                 y: newY,
                 createdAt: Date.now(),
               };
-              setTrail((prev) => [...prev.slice(-30), dot]);
+              setTrail((prev) => [...prev.slice(-60), dot]);
 
               return { x: newX, y: newY };
             });
@@ -84,7 +84,7 @@ const PlaneAnimation = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      setTrail((prev) => prev.filter((d) => now - d.createdAt < 1500));
+      setTrail((prev) => prev.filter((d) => now - d.createdAt < 3000));
     }, 200);
     return () => clearInterval(interval);
   }, []);
@@ -95,7 +95,7 @@ const PlaneAnimation = () => {
     <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden">
       {/* Trail dots */}
       {trail.map((dot) => {
-        const age = (Date.now() - dot.createdAt) / 1500; // 0→1 over 1.5s
+        const age = (Date.now() - dot.createdAt) / 3000;
         const opacity = Math.max(0, 1 - age);
         return (
           <div
@@ -104,11 +104,11 @@ const PlaneAnimation = () => {
             style={{
               left: `${dot.x}vw`,
               top: `${dot.y}vh`,
-              width: `${4 + (1 - opacity) * 3}px`,
-              height: `${4 + (1 - opacity) * 3}px`,
-              opacity: opacity * 0.6,
-              background: `radial-gradient(circle, hsl(40 65% 62% / ${opacity}), hsl(40 65% 52% / ${opacity * 0.3}))`,
-              boxShadow: `0 0 ${6 + (1 - opacity) * 4}px hsl(40 65% 52% / ${opacity * 0.4})`,
+              width: `${6 + (1 - opacity) * 5}px`,
+              height: `${6 + (1 - opacity) * 5}px`,
+              opacity: opacity * 0.7,
+              background: `radial-gradient(circle, hsl(40 65% 62% / ${opacity}), hsl(40 65% 52% / ${opacity * 0.4}))`,
+              boxShadow: `0 0 ${8 + (1 - opacity) * 6}px hsl(40 65% 52% / ${opacity * 0.5})`,
               transform: "translate(-50%, -50%)",
               transition: "opacity 0.3s ease-out",
             }}
@@ -127,7 +127,7 @@ const PlaneAnimation = () => {
           }}
         >
           <Plane
-            className="w-7 h-7 text-gold"
+            className="w-12 h-12 text-gold"
             style={{
               filter: "drop-shadow(0 0 10px hsl(40 65% 52% / 0.6))",
             }}
