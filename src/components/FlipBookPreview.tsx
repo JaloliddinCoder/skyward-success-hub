@@ -48,7 +48,7 @@ const FlipBookPreview = () => {
   }, []);
 
   return (
-    <section id="preview" className="py-24 bg-muted/50">
+    <section id="flipbook-preview" className="py-24 bg-muted/50">
       <div className="container mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

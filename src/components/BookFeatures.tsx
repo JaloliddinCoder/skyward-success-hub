@@ -27,7 +27,7 @@ const features = [
 
 const BookFeatures = () => {
   return (
-    <section className="py-24 bg-card">
+    <section id="book-features" className="py-24 bg-card">
       <div className="container mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
