@@ -11,67 +11,109 @@ interface TrailDot {
 
 const PlaneAnimation = () => {
   const [visible, setVisible] = useState(false);
-  const [planePos, setPlanePos] = useState({ x: 50, y: -30 });
+  const [planePos, setPlanePos] = useState({ x: 50, y: 50 });
   const [trail, setTrail] = useState<TrailDot[]>([]);
   const location = useLocation();
   const hideTimeout = useRef<NodeJS.Timeout | null>(null);
   const trailId = useRef(0);
   const lastScrollY = useRef(0);
   const animFrame = useRef<number>(0);
+  const velocityY = useRef(0);
+  const velocityX = useRef(0);
+  const targetY = useRef(50);
+  const targetX = useRef(50);
+  const currentY = useRef(50);
+  const currentX = useRef(50);
+  const isScrolling = useRef(false);
+  const idleFrame = useRef<number>(0);
 
   const showPlane = useCallback(() => {
     setVisible(true);
-    setPlanePos({ x: 50, y: 50 });
     if (hideTimeout.current) clearTimeout(hideTimeout.current);
-    hideTimeout.current = setTimeout(() => setVisible(false), 2500);
+    hideTimeout.current = setTimeout(() => setVisible(false), 3000);
   }, []);
 
-  // Scroll-driven movement
+  // Smooth idle drift when not scrolling
   useEffect(() => {
-    let ticking = false;
+    let time = 0;
+    const drift = () => {
+      time += 0.008;
+      if (!isScrolling.current) {
+        // Gentle figure-8 drift pattern
+        targetY.current = 50 + Math.sin(time * 0.7) * 12 + Math.sin(time * 1.3) * 5;
+        targetX.current = 50 + Math.sin(time * 0.5) * 8 + Math.cos(time * 0.9) * 4;
+      }
+
+      // Smooth interpolation (lerp) for buttery movement
+      const lerpFactor = 0.04;
+      currentX.current += (targetX.current - currentX.current) * lerpFactor;
+      currentY.current += (targetY.current - currentY.current) * lerpFactor;
+
+      // Clamp to center area
+      currentX.current = Math.min(65, Math.max(35, currentX.current));
+      currentY.current = Math.min(80, Math.max(20, currentY.current));
+
+      setPlanePos({ x: currentX.current, y: currentY.current });
+
+      // Add trail when visible
+      if (visible) {
+        const dot: TrailDot = {
+          id: ++trailId.current,
+          x: currentX.current,
+          y: currentY.current,
+          createdAt: Date.now(),
+        };
+        setTrail((prev) => [...prev.slice(-60), dot]);
+      }
+
+      idleFrame.current = requestAnimationFrame(drift);
+    };
+
+    idleFrame.current = requestAnimationFrame(drift);
+    return () => cancelAnimationFrame(idleFrame.current);
+  }, [visible]);
+
+  // Scroll-driven target updates
+  useEffect(() => {
+    let scrollTimeout: NodeJS.Timeout;
 
     const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        animFrame.current = requestAnimationFrame(() => {
-          const scrollY = window.scrollY;
-          const delta = scrollY - lastScrollY.current;
-          const absDelta = Math.abs(delta);
+      const scrollY = window.scrollY;
+      const delta = scrollY - lastScrollY.current;
 
-          if (absDelta > 15) {
-            setVisible(true);
-            if (hideTimeout.current) clearTimeout(hideTimeout.current);
-            hideTimeout.current = setTimeout(() => setVisible(false), 2000);
+      if (Math.abs(delta) > 5) {
+        isScrolling.current = true;
+        setVisible(true);
+        if (hideTimeout.current) clearTimeout(hideTimeout.current);
+        hideTimeout.current = setTimeout(() => setVisible(false), 3000);
 
-            setPlanePos((prev) => {
-              const newY = Math.min(75, Math.max(25, prev.y + delta * 0.1));
-              // Slight horizontal sway
-              const sway = Math.sin(scrollY * 0.008) * 6;
-              const newX = Math.min(60, Math.max(40, 50 + sway));
+        // Scroll affects target with momentum
+        velocityY.current += delta * 0.08;
+        velocityX.current += Math.sin(scrollY * 0.005) * delta * 0.03;
 
-              // Add trail dot
-              const dot: TrailDot = {
-                id: ++trailId.current,
-                x: newX,
-                y: newY,
-                createdAt: Date.now(),
-              };
-              setTrail((prev) => [...prev.slice(-60), dot]);
+        // Apply velocity with damping
+        targetY.current += velocityY.current;
+        targetX.current += velocityX.current;
+        velocityY.current *= 0.85;
+        velocityX.current *= 0.85;
 
-              return { x: newX, y: newY };
-            });
+        // Soft bounce back toward center
+        targetY.current += (50 - targetY.current) * 0.02;
+        targetX.current += (50 - targetX.current) * 0.02;
 
-            lastScrollY.current = scrollY;
-          }
-          ticking = false;
-        });
+        lastScrollY.current = scrollY;
       }
+
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        isScrolling.current = false;
+      }, 300);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(animFrame.current);
+      clearTimeout(scrollTimeout);
     };
   }, []);
 
@@ -90,6 +132,12 @@ const PlaneAnimation = () => {
   }, []);
 
   if (!visible && trail.length === 0) return null;
+
+  // Calculate rotation based on movement direction
+  const rotation = Math.atan2(
+    velocityY.current,
+    velocityX.current
+  ) * (180 / Math.PI) + 90;
 
   return (
     <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden">
@@ -110,7 +158,6 @@ const PlaneAnimation = () => {
               background: `radial-gradient(circle, hsl(40 65% 62% / ${opacity}), hsl(40 65% 52% / ${opacity * 0.4}))`,
               boxShadow: `0 0 ${8 + (1 - opacity) * 6}px hsl(40 65% 52% / ${opacity * 0.5})`,
               transform: "translate(-50%, -50%)",
-              transition: "opacity 0.3s ease-out",
             }}
           />
         );
@@ -119,11 +166,12 @@ const PlaneAnimation = () => {
       {/* Plane */}
       {visible && (
         <div
-          className="absolute transition-all duration-200 ease-out"
+          className="absolute"
           style={{
             left: `${planePos.x}vw`,
             top: `${planePos.y}vh`,
-            transform: "translate(-50%, -50%) rotate(90deg)",
+            transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+            transition: "transform 0.3s ease-out",
           }}
         >
           <Plane
