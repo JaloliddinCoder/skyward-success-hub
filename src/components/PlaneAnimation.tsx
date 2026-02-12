@@ -21,7 +21,7 @@ const PlaneAnimation = () => {
 
   const showPlane = useCallback(() => {
     setVisible(true);
-    setPlanePos({ x: 50, y: -30 });
+    setPlanePos({ x: 50, y: 50 });
     if (hideTimeout.current) clearTimeout(hideTimeout.current);
     hideTimeout.current = setTimeout(() => setVisible(false), 2500);
   }, []);
@@ -44,10 +44,10 @@ const PlaneAnimation = () => {
             hideTimeout.current = setTimeout(() => setVisible(false), 2000);
 
             setPlanePos((prev) => {
-              const newY = Math.min(110, Math.max(-30, prev.y + delta * 0.15));
+              const newY = Math.min(75, Math.max(25, prev.y + delta * 0.1));
               // Slight horizontal sway
-              const sway = Math.sin(scrollY * 0.01) * 8;
-              const newX = 50 + sway;
+              const sway = Math.sin(scrollY * 0.008) * 6;
+              const newX = Math.min(60, Math.max(40, 50 + sway));
 
               // Add trail dot
               const dot: TrailDot = {
